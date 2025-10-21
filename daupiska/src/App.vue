@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import VideoCard from './components/VideoCard.vue'
 import { useVideos } from './composables/useVideos'
 
@@ -15,15 +15,29 @@ const {
 
 const isDarkTheme = ref(false)
 
+const applyTheme = (dark) => {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+  localStorage.setItem('theme', dark ? 'dark' : 'light')
+}
+
 // Watch search query changes
 watch(searchQuery, (newQuery) => {
   console.log('Search query changed to:', newQuery)
 })
 
+// Initialize theme from saved value or OS preference
+onMounted(() => {
+  const saved = localStorage.getItem('theme')
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+  const useDark = saved ? saved === 'dark' : prefersDark
+  isDarkTheme.value = useDark
+  applyTheme(useDark)
+})
+
 // Toggle theme
 const toggleTheme = () => {
   isDarkTheme.value = !isDarkTheme.value
-  document.documentElement.setAttribute('data-theme', isDarkTheme.value ? 'dark' : 'light')
+  applyTheme(isDarkTheme.value)
 }
 </script>
 
